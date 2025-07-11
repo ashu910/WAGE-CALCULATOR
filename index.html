@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ashivers Wage & Overtime Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    input {
+      padding: 8px;
+      margin: 5px;
+      width: 100%;
+    }
+    button {
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    .download-btn, .reset-btn {
+      background: #28a745;
+    }
+    .reset-btn {
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Ashivers</h1>
+    <h2>Employee Wage & Overtime Calculator</h2>
+    <label>Number of Employees:</label>
+    <input type="number" id="numEmployees" placeholder="Enter number of employees">
+    <button onclick="generateForm()">Generate Employee Fields</button>
+    <form id="employeeForm"></form>
+    <div id="result"></div>
+    <button class="download-btn" onclick="downloadTableAsCSV()">Download as CSV</button>
+    <button class="reset-btn" onclick="location.reload()">Reset</button>
+  </div>
+
+  <script>
+    function generateForm() {
+      const num = parseInt(document.getElementById("numEmployees").value);
+      const form = document.getElementById("employeeForm");
+      form.innerHTML = '';
+
+      for (let i = 0; i < num; i++) {
+        form.innerHTML += `
+          <h3>Employee ${i + 1}</h3>
+          <input placeholder="Employee Name" id="name${i}">
+          <input type="number" placeholder="Monthly Salary" id="salary${i}">
+          <input type="number" placeholder="Total Days in Month" id="days${i}">
+          <input type="number" placeholder="Leave Days" id="leaves${i}">
+          <input type="number" placeholder="Total Overtime Hours" id="overtime${i}">
+        `;
+      }
+      form.innerHTML += `<button type="button" onclick="calculate()">Calculate Salaries</button>`;
+    }
+
+    function calculate() {
+      const num = parseInt(document.getElementById("numEmployees").value);
+      let output = `
+        <table id="salaryTable">
+          <tr>
+            <th>Name</th>
+            <th>Daily Wage</th>
+            <th>Hourly Wage</th>
+            <th>Working Days</th>
+            <th>Overtime Pay</th>
+            <th>Total Salary</th>
+          </tr>
+      `;
+
+      for (let i = 0; i < num; i++) {
+        const name = document.getElementById(`name${i}`).value;
+        const salary = parseFloat(document.getElementById(`salary${i}`).value);
+        const totalDays = parseInt(document.getElementById(`days${i}`).value);
+        const leaveDays = parseInt(document.getElementById(`leaves${i}`).value);
+        const overtime = parseFloat(document.getElementById(`overtime${i}`).value);
+
+        const dailyWage = salary / totalDays;
+        const hourlyWage = dailyWage / 8;
+        const workingDays = totalDays - leaveDays;
+        const adjustedSalary = dailyWage * workingDays;
+        const overtimePay = hourlyWage * overtime;
+        const totalSalary = adjustedSalary + overtimePay;
+
+        output += `
+          <tr>
+            <td>${name}</td>
+            <td>₹${dailyWage.toFixed(2)}</td>
+            <td>₹${hourlyWage.toFixed(2)}</td>
+            <td>${workingDays}</td>
+            <td>₹${overtimePay.toFixed(2)}</td>
+            <td>₹${totalSalary.toFixed(2)}</td>
+          </tr>
+        `;
+      }
+      output += `</table>`;
+      document.getElementById("result").innerHTML = output;
+    }
+
+    function downloadTableAsCSV() {
+      const table = document.getElementById("salaryTable");
+      if (!table) return;
+      let csv = '';
+      for (let row of table.rows) {
+        const cols = Array.from(row.cells).map(cell => cell.innerText.replace(/\n|\r/g, '').trim());
+        csv += cols.join(',') + "\n";
+      }
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('href', url);
+      a.setAttribute('download', 'employee_salaries.csv');
+      a.click();
+    }
+  </script>
+</body>
+</html>
